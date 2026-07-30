@@ -139,7 +139,7 @@ const planOptions: Record<ChapterId, readonly PlanOption[]> = {
     },
     {
       id: "illusions",
-      name: "Museum of Illusions Mission",
+      name: "Illusions Mission",
       shortName: "Illusions photo mission",
       time: "12:10–1:20 PM",
       start: 12 * 60 + 10,
@@ -147,7 +147,7 @@ const planOptions: Record<ChapterId, readonly PlanOption[]> = {
       place: "132 Front Street East",
       description:
         "An interactive visual playground turned into a competition: direct three impossible photos each, then choose the official birthday cover.",
-      note: "Fast-moving, playful, and close to the Distillery—this one fills the chapter without feeling like a conventional museum.",
+      note: "Fast-moving, playful, and close to the Distillery—this one fills the chapter without feeling like a conventional attraction.",
       tags: ["Interactive", "Photo challenge", "70 minutes"],
       availability: "OPEN DAILY · 10 AM–8 PM",
       confidence: "confirmed",
