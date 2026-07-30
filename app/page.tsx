@@ -19,8 +19,8 @@ type PlanOption = {
   note: string;
   tags: readonly string[];
   availability: string;
-  confidence: "confirmed" | "check";
-  source: string;
+  confidence: "confirmed" | "check" | "conditional";
+  source?: string;
 };
 
 function LeoConstellation({ className = "" }: { className?: string }) {
@@ -122,36 +122,51 @@ const planOptions: Record<ChapterId, readonly PlanOption[]> = {
       source: "https://monography.ca/",
     },
     {
-      id: "panchrome",
-      name: "Monography Panchrome",
-      shortName: "Colour portrait",
-      time: "1:00–1:30 PM",
-      start: 13 * 60,
-      end: 13 * 60 + 30,
-      place: "621A Bloor Street West",
+      id: "rose-aura",
+      name: "Rose Aura Portrait",
+      shortName: "Rose Aura portrait",
+      time: "12:30–1:15 PM",
+      start: 12 * 60 + 30,
+      end: 13 * 60 + 15,
+      place: "Rose Aura · 703 College Street",
       description:
-        "The same self-directed portrait idea in colour, with five bright backdrops and retouched digital images to keep.",
-      note: "The fashion-editorial version of the opening scene.",
-      tags: ["Five backdrops", "Retouched JPGs", "30 minutes"],
-      availability: "MONDAY SESSION · SLOT TO CONFIRM",
+        "A colourful aura portrait and reading on Instax Wide or rare discontinued FP-100C film—a strange, beautiful physical keepsake.",
+      note: "Up to two people can share one portrait. New appointment dates are released monthly.",
+      tags: ["Rare film", "Take-home portrait", "Reading included"],
+      availability: "APPOINTMENT REQUIRED · AUG 10 TO CONFIRM",
       confidence: "check",
-      source: "https://monography.ca/panchrome/",
+      source: "https://roseaura.ca/",
     },
     {
-      id: "bata",
-      name: "Bata Fashion Hunt",
-      shortName: "Bata fashion hunt",
-      time: "12:30–1:30 PM",
-      start: 12 * 60 + 30,
-      end: 13 * 60 + 30,
-      place: "Bata Shoe Museum · 327 Bloor Street West",
+      id: "illusions",
+      name: "Museum of Illusions Mission",
+      shortName: "Illusions photo mission",
+      time: "12:10–1:20 PM",
+      start: 12 * 60 + 10,
+      end: 13 * 60 + 20,
+      place: "132 Front Street East",
       description:
-        "A playful designer-shoe challenge: find the impossible heel, steal one detail for a future look, and crown the shoe of the birthday.",
-      note: "Less posed, more roaming—finished with one editorial birthday photo.",
-      tags: ["Fashion", "Mini challenge", "Open Monday"],
-      availability: "OPEN MONDAY · 10 AM–5 PM",
+        "An interactive visual playground turned into a competition: direct three impossible photos each, then choose the official birthday cover.",
+      note: "Fast-moving, playful, and close to the Distillery—this one fills the chapter without feeling like a conventional museum.",
+      tags: ["Interactive", "Photo challenge", "70 minutes"],
+      availability: "OPEN DAILY · 10 AM–8 PM",
       confidence: "confirmed",
-      source: "https://batashoemuseum.ca/category/visit/",
+      source: "https://museumofillusions.ca/buy-tickets/",
+    },
+    {
+      id: "brunch",
+      name: "The Birthday Brunch Cut",
+      shortName: "birthday brunch",
+      time: "12:00–1:15 PM",
+      start: 12 * 60,
+      end: 13 * 60 + 15,
+      place: "Downtown Toronto · chosen together",
+      description:
+        "If breakfast with her brother changes, the opening chapter becomes a proper late brunch—somewhere worth dressing for, with time to linger.",
+      note: "This only enters the final cut if she is free. The restaurant gets chosen together, never sprung on her.",
+      tags: ["Conditional", "Food-first", "75 minutes"],
+      availability: "ONLY IF BREAKFAST PLANS CHANGE",
+      confidence: "conditional",
     },
   ],
   candles: [
@@ -648,7 +663,7 @@ export default function Home() {
       <section className="brief">
         <div>
           <span className="brief-label">The premise</span>
-          <p>Creative first. Competitive second. Beautiful food at the finish.</p>
+          <p>A memorable opening. Creative second. Competitive before dinner.</p>
         </div>
         <div>
           <span className="brief-label">Your authority</span>
@@ -813,7 +828,7 @@ export default function Home() {
                         </div>
                         <p
                           className={`availability-stamp ${
-                            selectedOption.confidence === "check"
+                            selectedOption.confidence !== "confirmed"
                               ? "needs-check"
                               : ""
                           }`}
@@ -849,8 +864,7 @@ export default function Home() {
                             aria-label={chapter.title}
                           >
                             {chapterOptions.map((option) => {
-                              const selected =
-                                planChoices[choiceChapterId] === option.id;
+                              const selected = selectedOption.id === option.id;
                               return (
                                 <article
                                   className={
@@ -877,14 +891,16 @@ export default function Home() {
                                       </i>
                                       <span
                                         className={
-                                          option.confidence === "check"
+                                          option.confidence !== "confirmed"
                                             ? "option-status needs-check"
                                             : "option-status"
                                         }
                                       >
                                         {option.confidence === "check"
                                           ? "Confirm first"
-                                          : "Monday-ready"}
+                                          : option.confidence === "conditional"
+                                            ? "If plans change"
+                                            : "Monday-ready"}
                                       </span>
                                     </span>
                                     <strong>{option.name}</strong>
@@ -894,14 +910,20 @@ export default function Home() {
                                       {option.place}
                                     </span>
                                   </button>
-                                  <a
-                                    href={option.source}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    Official details{" "}
-                                    <span aria-hidden="true">↗</span>
-                                  </a>
+                                  {option.source ? (
+                                    <a
+                                      href={option.source}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      Official details{" "}
+                                      <span aria-hidden="true">↗</span>
+                                    </a>
+                                  ) : (
+                                    <span className="option-link-placeholder">
+                                      Venue chosen together
+                                    </span>
+                                  )}
                                 </article>
                               );
                             })}

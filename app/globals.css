@@ -1265,7 +1265,8 @@ button {
   text-transform: uppercase;
 }
 
-.plan-option > a {
+.plan-option > a,
+.option-link-placeholder {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1277,6 +1278,10 @@ button {
   letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;
+}
+
+.option-link-placeholder {
+  color: rgba(32, 28, 25, 0.58);
 }
 
 .plan-option > a:hover {
