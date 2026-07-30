@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   ),
   title: "The Twenty-Two Edit — Hannah’s Birthday",
   description:
-    "A private, editable birthday agenda for Monday, August 10 in Toronto.",
+    "A private, editable birthday agenda with Original and Late Cut editions for Monday, August 10.",
   openGraph: {
     title: "The Twenty-Two Edit — Hannah’s Birthday",
     description:
-      "Your day. Your say. Build Hannah’s 22nd-birthday itinerary, one chapter at a time.",
+      "Your day. Your say. Choose the Original Cut or a 2 PM Late Cut, then build the itinerary.",
     url: "https://mikeyoknow.github.io/the-twenty-two-edit/",
     siteName: "The Twenty-Two Edit",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The Twenty-Two Edit — Hannah’s Birthday",
     description:
-      "Your day. Your say. Build Hannah’s 22nd-birthday itinerary.",
+      "Your day. Your say. Choose the Original Cut or the Late Cut.",
     images: ["https://mikeyoknow.github.io/the-twenty-two-edit/og.png"],
   },
 };

@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, Fragment, useEffect, useMemo, useState } from "react";
 
 type PerkMap = Record<string, boolean | undefined>;
 type DinnerChoice = "pie-bar" | "animl";
 type ChapterId = "portrait" | "candles" | "karting";
 type PlanChoiceMap = Record<ChapterId, string>;
+type Edition = "original" | "late";
 
 type PlanOption = {
   id: string;
@@ -21,6 +22,13 @@ type PlanOption = {
   availability: string;
   confidence: "confirmed" | "check" | "conditional";
   source?: string;
+};
+
+type ReviewState = {
+  planChoices: PlanChoiceMap;
+  perks: PerkMap;
+  dinnerChoice: DinnerChoice | "";
+  note: string;
 };
 
 function LeoConstellation({ className = "" }: { className?: string }) {
@@ -287,10 +295,184 @@ const planOptions: Record<ChapterId, readonly PlanOption[]> = {
   ],
 };
 
+const lateChapters = [
+  {
+    id: "portrait",
+    number: "01",
+    kicker: "The first move",
+    title: "Choose the First Move",
+    colour: "blue",
+  },
+  {
+    id: "candles",
+    number: "02",
+    kicker: "The after-hours workshop",
+    title: "Choose the Creative Chapter",
+    colour: "rose",
+  },
+  {
+    id: "dinner",
+    number: "03",
+    kicker: "The final look",
+    title: "Birthday Dinner",
+    time: "9:00 PM onwards",
+    place: "Final reservation follows your vote",
+    description:
+      "The Late Cut still lands somewhere worth dressing for—great food, a little theatre, and enough time to settle in.",
+    note: "The restaurant is not a surprise. You choose the mood first.",
+    tags: ["No rushing", "Dress-up moment", "Dessert mandatory"],
+    availability: "MONDAY AT 9 · 2 OPEN OPTIONS",
+    colour: "plum",
+  },
+] as const;
+
+const latePlanOptions: Record<ChapterId, readonly PlanOption[]> = {
+  portrait: [
+    {
+      id: "late-k1",
+      name: "K1 Championship",
+      shortName: "K1 championship",
+      time: "3:00–4:15 PM",
+      start: 15 * 60,
+      end: 16 * 60 + 15,
+      place: "K1 Speed · 75 Carl Hall Road",
+      description:
+        "Start north of downtown with a proper two-person racing championship: practice, fastest lap, and a final.",
+      note: "The cleanest Thornhill route. Comfortable clothes, closed-toe shoes, and trophy energy.",
+      tags: ["Recommended route", "Competitive", "75 minutes"],
+      availability: "OPEN MONDAY · UNTIL 10 PM",
+      confidence: "confirmed",
+      source: "https://www.k1speed.ca/location/toronto/",
+    },
+    {
+      id: "late-rose-aura",
+      name: "Rose Aura Portrait",
+      shortName: "Rose Aura portrait",
+      time: "3:15–4:00 PM",
+      start: 15 * 60 + 15,
+      end: 16 * 60,
+      place: "Rose Aura · 703 College Street",
+      description:
+        "A colourful aura portrait and reading on physical film—the quietest, strangest keepsake in the Late Cut.",
+      note: "Appointment only. New dates are released monthly, so this stays a confirm-first choice.",
+      tags: ["Rare film", "Take-home portrait", "45 minutes"],
+      availability: "APPOINTMENT REQUIRED · AUG 10 TO CONFIRM",
+      confidence: "check",
+      source: "https://roseaura.ca/",
+    },
+    {
+      id: "late-illusions",
+      name: "Illusions Mission",
+      shortName: "Illusions photo mission",
+      time: "3:20–4:30 PM",
+      start: 15 * 60 + 20,
+      end: 16 * 60 + 30,
+      place: "132 Front Street East",
+      description:
+        "Turn the visual playground into a photo competition, then stay downtown for the creative chapter.",
+      note: "The easiest downtown handoff: this leaves a full ninety minutes before Yummi.",
+      tags: ["Interactive", "Photo challenge", "70 minutes"],
+      availability: "OPEN DAILY · 10 AM–8 PM",
+      confidence: "confirmed",
+      source: "https://museumofillusions.ca/buy-tickets/",
+    },
+    {
+      id: "late-activate",
+      name: "Activate Stockyards",
+      shortName: "Activate games",
+      time: "3:15–4:30 PM",
+      start: 15 * 60 + 15,
+      end: 16 * 60 + 30,
+      place: "Activate · 30 Weston Road",
+      description:
+        "Fast physical and mental rooms built around lights, lasers, climbing, puzzles, teamwork, and score-chasing.",
+      note: "A strong middle route between Thornhill and downtown, with enough time to reset before the workshop.",
+      tags: ["Physical games", "Score chasing", "75 minutes"],
+      availability: "OPEN MONDAY · 11 AM–10 PM",
+      confidence: "confirmed",
+      source: "https://playactivate.com/toronto-stockyards",
+    },
+    {
+      id: "late-pursuit",
+      name: "Pursuit OCR",
+      shortName: "Pursuit obstacle course",
+      time: "3:15–4:45 PM",
+      start: 15 * 60 + 15,
+      end: 16 * 60 + 45,
+      place: "Pursuit OCR · 75 Westmore Drive",
+      description:
+        "A giant indoor obstacle playground with climbing, crawling, racing, and enough challenges to demand a rematch.",
+      note: "The most physical choice and the longest rush-hour transfer to the Distillery. Book only with route confidence.",
+      tags: ["Tightest route", "Obstacle course", "90 minutes"],
+      availability: "OPEN MONDAY · ROUTE NEEDS CARE",
+      confidence: "check",
+      source: "https://pursuitocr.com/",
+    },
+  ],
+  candles: [
+    {
+      id: "late-yummi",
+      name: "Yummi Candle Workshop",
+      shortName: "Yummi candles",
+      time: "6:00–8:00 PM",
+      start: 18 * 60,
+      end: 20 * 60,
+      place: "Yummi · The Distillery District",
+      description:
+        "Choose, mix, pour, and name a collection of scents in the official evening workshop. Everything comes home with us.",
+      note: "The recommended Late Cut workshop. The candles cool while we reset for dinner.",
+      tags: ["Recommended route", "Eight scents", "Take-home collection"],
+      availability: "MONDAY CLASS · 6 PM",
+      confidence: "confirmed",
+      source: "https://www.yummicandles.ca/pages/scented-candle-workshop",
+    },
+    {
+      id: "late-lip-lab",
+      name: "Lip Lab Custom Colour",
+      shortName: "Custom lip colour",
+      time: "6:00–7:00 PM",
+      start: 18 * 60,
+      end: 19 * 60,
+      place: "Lip Lab · Toronto studio to confirm",
+      description:
+        "Create a one-of-one lipstick, gloss, balm, or cheek colour—then choose its scent, case, name, and engraving.",
+      note: "The fashion-forward short workshop. Confirm the Monday reservation and Toronto studio before booking.",
+      tags: ["Custom shade", "Engraved", "About 1 hour"],
+      availability: "EVENING RESERVATION TO CONFIRM",
+      confidence: "check",
+      source:
+        "https://www.liplab.com/pages/lip-lab-experience-frequently-asked-questions",
+    },
+    {
+      id: "late-fragrance",
+      name: "Ratelier Custom Fragrance",
+      shortName: "Custom fragrance",
+      time: "6:00–8:30 PM",
+      start: 18 * 60,
+      end: 20 * 60 + 30,
+      place: "Ratelier · Trinity Bellwoods",
+      description:
+        "Explore more than 100 ingredients, experiment, and blend a personal fragrance that can be bottled to take home.",
+      note: "A private Monday evening session has to be requested. It leaves a precise thirty-minute dinner transfer.",
+      tags: ["100+ ingredients", "Personal formula", "2.5 hours"],
+      availability: "PRIVATE EVENING REQUEST · TIGHT FINISH",
+      confidence: "check",
+      source: "https://www.ratelier.ca/workshop",
+    },
+  ],
+  karting: [],
+};
+
 const defaultPlanChoices: PlanChoiceMap = {
   portrait: "monochrome",
   candles: "yummi",
   karting: "k1",
+};
+
+const defaultLatePlanChoices: PlanChoiceMap = {
+  portrait: "late-k1",
+  candles: "late-yummi",
+  karting: "",
 };
 
 const dinnerOptions = [
@@ -375,11 +557,49 @@ const defaultPerks: PerkMap = {
   starbucks: true,
 };
 
-function getPlanOption(chapter: ChapterId, optionId: string) {
-  return (
-    planOptions[chapter].find((option) => option.id === optionId) ??
-    planOptions[chapter][0]
-  );
+const sephoraRestockId = "sephora-restock";
+const sephoraRestockDuration = 45;
+
+const defaultReviews: Record<Edition, ReviewState> = {
+  original: {
+    planChoices: defaultPlanChoices,
+    perks: defaultPerks,
+    dinnerChoice: "",
+    note: "",
+  },
+  late: {
+    planChoices: defaultLatePlanChoices,
+    perks: defaultPerks,
+    dinnerChoice: "",
+    note: "",
+  },
+};
+
+function mergeReview(
+  base: ReviewState,
+  saved?: Partial<ReviewState>,
+): ReviewState {
+  return {
+    ...base,
+    ...saved,
+    planChoices: {
+      ...base.planChoices,
+      ...(saved?.planChoices ?? {}),
+    },
+    perks: saved?.perks ?? base.perks,
+  };
+}
+
+function getPlanOption(
+  options: Record<ChapterId, readonly PlanOption[]>,
+  chapter: ChapterId,
+  optionId: string,
+) {
+  const fallback = options[chapter][0];
+  if (!fallback) {
+    throw new Error(`No plan options configured for ${chapter}`);
+  }
+  return options[chapter].find((option) => option.id === optionId) ?? fallback;
 }
 
 function formatClock(minutes: number) {
@@ -404,11 +624,10 @@ export default function Home() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const [gateError, setGateError] = useState("");
-  const [planChoices, setPlanChoices] =
-    useState<PlanChoiceMap>(defaultPlanChoices);
-  const [perks, setPerks] = useState<PerkMap>(defaultPerks);
-  const [dinnerChoice, setDinnerChoice] = useState<DinnerChoice | "">("");
-  const [note, setNote] = useState("");
+  const [edition, setEdition] = useState<Edition>("original");
+  const [reviews, setReviews] =
+    useState<Record<Edition, ReviewState>>(defaultReviews);
+  const [hydrated, setHydrated] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -417,91 +636,206 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedUnlock === "yes") setUnlocked(true);
 
-    const savedReview = window.localStorage.getItem("twenty-two-edit-review");
-    if (savedReview) {
+    const savedEdition = window.localStorage.getItem("twenty-two-edit-edition");
+    if (savedEdition === "original" || savedEdition === "late") {
+      setEdition(savedEdition);
+    }
+
+    const savedReviews = window.localStorage.getItem(
+      "twenty-two-edit-reviews-v2",
+    );
+    if (savedReviews) {
       try {
-        const parsed = JSON.parse(savedReview);
-        setPlanChoices({
-          ...defaultPlanChoices,
-          ...(parsed.planChoices ?? {}),
+        const parsed = JSON.parse(savedReviews) as Partial<
+          Record<Edition, Partial<ReviewState>>
+        >;
+        setReviews({
+          original: mergeReview(defaultReviews.original, parsed.original),
+          late: mergeReview(defaultReviews.late, parsed.late),
         });
-        setPerks(parsed.perks ?? defaultPerks);
-        setDinnerChoice(parsed.dinnerChoice ?? "");
-        setNote(parsed.note ?? "");
       } catch {
-        window.localStorage.removeItem("twenty-two-edit-review");
+        window.localStorage.removeItem("twenty-two-edit-reviews-v2");
+      }
+    } else {
+      const legacyReview = window.localStorage.getItem("twenty-two-edit-review");
+      if (legacyReview) {
+        try {
+          const parsed = JSON.parse(legacyReview) as Partial<ReviewState>;
+          setReviews({
+            ...defaultReviews,
+            original: mergeReview(defaultReviews.original, parsed),
+          });
+        } catch {
+          window.localStorage.removeItem("twenty-two-edit-review");
+        }
       }
     }
+
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     window.localStorage.setItem(
-      "twenty-two-edit-review",
-      JSON.stringify({ planChoices, perks, dinnerChoice, note }),
+      "twenty-two-edit-reviews-v2",
+      JSON.stringify(reviews),
     );
-  }, [planChoices, perks, dinnerChoice, note]);
+    window.localStorage.setItem("twenty-two-edit-edition", edition);
+  }, [edition, hydrated, reviews]);
 
-  const selectedPortrait = getPlanOption("portrait", planChoices.portrait);
-  const selectedWorkshop = getPlanOption("candles", planChoices.candles);
-  const selectedEvent = getPlanOption("karting", planChoices.karting);
-  const pickupTime = selectedPortrait.start - 60;
-  const answered = 3 + (dinnerChoice ? 1 : 0);
-  const progress = (answered / chapters.length) * 100;
-  const selectedPerks = useMemo(
-    () => birthdayPerks.filter((perk) => perks[perk.id]),
-    [perks],
+  const currentReview = reviews[edition];
+  const activeChapters = edition === "late" ? lateChapters : chapters;
+  const activePlanOptions =
+    edition === "late" ? latePlanOptions : planOptions;
+  const currentDinnerChapter =
+    edition === "late" ? lateChapters[2] : dinnerChapter;
+  const selectedPortrait = getPlanOption(
+    activePlanOptions,
+    "portrait",
+    currentReview.planChoices.portrait,
   );
-  const liveBuffers = [
-    {
-      after: "portrait",
-      minutes: selectedWorkshop.start - selectedPortrait.end,
-      title: "Transfer to the creative chapter",
-      detail: `${selectedPortrait.place} → ${selectedWorkshop.place}`,
-    },
-    {
-      after: "candles",
-      minutes: selectedEvent.start - selectedWorkshop.end,
-      title: "The roam",
-      detail: `${selectedWorkshop.place} → ${selectedEvent.place}`,
-    },
-    {
-      after: "karting",
-      minutes: 21 * 60 - selectedEvent.end,
-      title: "The reset",
-      detail: `${selectedEvent.place} → dinner · change, fix hair, arrive composed`,
-    },
-  ];
+  const selectedWorkshop = getPlanOption(
+    activePlanOptions,
+    "candles",
+    currentReview.planChoices.candles,
+  );
+  const selectedEvent =
+    edition === "original"
+      ? getPlanOption(
+          activePlanOptions,
+          "karting",
+          currentReview.planChoices.karting,
+        )
+      : null;
+  const activeActivities = selectedEvent
+    ? [selectedPortrait, selectedWorkshop, selectedEvent]
+    : [selectedPortrait, selectedWorkshop];
+  const pickupTime = edition === "late" ? 14 * 60 : selectedPortrait.start - 60;
+  const choiceCount = activeChapters.length - 1;
+  const answered = choiceCount + (currentReview.dinnerChoice ? 1 : 0);
+  const progress = (answered / activeChapters.length) * 100;
+  const selectedPerks = useMemo(
+    () =>
+      birthdayPerks.filter((perk) => currentReview.perks[perk.id]),
+    [currentReview.perks],
+  );
+  const sephoraRestockSelected = Boolean(
+    currentReview.perks[sephoraRestockId],
+  );
+  const restockAfterChapter: ChapterId =
+    edition === "late" ? "portrait" : "candles";
+  const restockStart =
+    edition === "late"
+      ? Math.max(
+          selectedPortrait.end + 15,
+          selectedWorkshop.start - sephoraRestockDuration - 30,
+        )
+      : Math.max(
+          selectedWorkshop.end + 15,
+          selectedEvent!.start - sephoraRestockDuration - 45,
+        );
+  const restockEnd = restockStart + sephoraRestockDuration;
+  const liveBuffers =
+    edition === "late"
+      ? [
+          {
+            after: "portrait",
+            minutes:
+              selectedWorkshop.start -
+              selectedPortrait.end -
+              (sephoraRestockSelected ? sephoraRestockDuration : 0),
+            title: "The cross-town glide",
+            detail: `${selectedPortrait.place} → ${selectedWorkshop.place}${
+              sephoraRestockSelected
+                ? " · the Sephora restock run lives inside this window"
+                : ""
+            }`,
+          },
+          {
+            after: "candles",
+            minutes: 21 * 60 - selectedWorkshop.end,
+            title: "The dinner runway",
+            detail: `${selectedWorkshop.place} → dinner · collect, change, arrive composed`,
+          },
+        ]
+      : [
+          {
+            after: "portrait",
+            minutes: selectedWorkshop.start - selectedPortrait.end,
+            title: "Transfer to the creative chapter",
+            detail: `${selectedPortrait.place} → ${selectedWorkshop.place}`,
+          },
+          {
+            after: "candles",
+            minutes:
+              selectedEvent!.start -
+              selectedWorkshop.end -
+              (sephoraRestockSelected ? sephoraRestockDuration : 0),
+            title: "The roam",
+            detail: `${selectedWorkshop.place} → ${selectedEvent!.place}${
+              sephoraRestockSelected
+                ? " · the Sephora restock run lives inside this window"
+                : ""
+            }`,
+          },
+          {
+            after: "karting",
+            minutes: 21 * 60 - selectedEvent!.end,
+            title: "The reset",
+            detail: `${selectedEvent!.place} → dinner · change, fix hair, arrive composed`,
+          },
+        ];
   const minimumBuffer = Math.min(
     ...liveBuffers.map((buffer) => buffer.minutes),
   );
+  const bufferNeedsAttention =
+    minimumBuffer < (edition === "late" ? 45 : 30);
+  const reviewText = [
+    edition === "late"
+      ? "HANNAH’S TWENTY-TWO EDIT · THE LATE CUT"
+      : "HANNAH’S TWENTY-TWO EDIT · ORIGINAL CUT",
+    `Monday, August 10 · ${
+      edition === "late" ? "Thornhill → Toronto" : "Toronto"
+    }`,
+    `Pickup: ${formatClock(pickupTime)}${
+      edition === "late" ? " · Thornhill" : ""
+    }`,
+    `Birthday perks: ${
+      selectedPerks.length
+        ? selectedPerks.map((perk) => perk.name).join(", ")
+        : "Skip the perks run"
+    }`,
+    `Beauty edit: ${
+      sephoraRestockSelected
+        ? `Sephora Restock Run · ${formatClock(restockStart)}–${formatClock(
+            restockEnd,
+          )}`
+        : "Skip the Sephora Restock Run"
+    }`,
+    "",
+    ...activeActivities.map(
+      (activity, index) =>
+        `${String(index + 1).padStart(2, "0")}. ${activity.name} · ${
+          activity.time
+        }`,
+    ),
+    `${String(activeActivities.length + 1).padStart(2, "0")}. ${
+      currentReview.dinnerChoice
+        ? dinnerLabels[currentReview.dinnerChoice]
+        : "Dinner choice pending"
+    } · 9:00 PM`,
+    "",
+    `Note: ${currentReview.note.trim() || "No extra notes."}`,
+  ].join("\n");
 
-  const reviewText = useMemo(() => {
-    return [
-      "HANNAH’S TWENTY-TWO EDIT",
-      "Monday, August 10 · Toronto",
-      `Pickup: ${formatClock(pickupTime)}`,
-      `Birthday perks: ${
-        selectedPerks.length
-          ? selectedPerks.map((perk) => perk.name).join(", ")
-          : "Skip the perks run"
-      }`,
-      "",
-      `01. ${selectedPortrait.name} · ${selectedPortrait.time}`,
-      `02. ${selectedWorkshop.name} · ${selectedWorkshop.time}`,
-      `03. ${selectedEvent.name} · ${selectedEvent.time}`,
-      `04. ${dinnerChoice ? dinnerLabels[dinnerChoice] : "Dinner choice pending"} · 9:00 PM`,
-      "",
-      `Note: ${note.trim() || "No extra notes."}`,
-    ].join("\n");
-  }, [
-    dinnerChoice,
-    note,
-    pickupTime,
-    selectedEvent,
-    selectedPerks,
-    selectedPortrait,
-    selectedWorkshop,
-  ]);
+  function updateCurrentReview(
+    updater: (review: ReviewState) => ReviewState,
+  ) {
+    setReviews((current) => ({
+      ...current,
+      [edition]: updater(current[edition]),
+    }));
+  }
 
   function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -531,10 +865,10 @@ export default function Home() {
   }
 
   function resetReview() {
-    setPlanChoices(defaultPlanChoices);
-    setPerks(defaultPerks);
-    setDinnerChoice("");
-    setNote("");
+    setReviews((current) => ({
+      ...current,
+      [edition]: defaultReviews[edition],
+    }));
     setCopied(false);
   }
 
@@ -622,30 +956,69 @@ export default function Home() {
   }
 
   return (
-    <main className="agenda-shell">
+    <main
+      className={`agenda-shell ${
+        edition === "late" ? "late-edition" : "original-edition"
+      }`}
+    >
       <header className="site-header">
         <a className="wordmark" href="#top" aria-label="The Twenty-Two Edit home">
           THE <span>22</span> EDIT
         </a>
-        <div className="header-meta">
-          <span>MON · AUG 10</span>
-          <span>TORONTO</span>
-          <span className="leo-pill">
-            <LeoSunMark className="leo-pill-icon" />
-            LEO SEASON
-          </span>
+        <div className="header-actions">
+          <div
+            className="edition-switcher"
+            role="group"
+            aria-label="Choose birthday edition"
+          >
+            <button
+              type="button"
+              aria-pressed={edition === "original"}
+              onClick={() => {
+                setEdition("original");
+                setCopied(false);
+              }}
+            >
+              Original Cut
+            </button>
+            <button
+              type="button"
+              aria-pressed={edition === "late"}
+              onClick={() => {
+                setEdition("late");
+                setCopied(false);
+              }}
+            >
+              Late Cut
+            </button>
+          </div>
+          <div className="header-meta">
+            <span>MON · AUG 10</span>
+            <span>{edition === "late" ? "THORNHILL → TORONTO" : "TORONTO"}</span>
+            <span className="leo-pill">
+              <LeoSunMark className="leo-pill-icon" />
+              {edition === "late" ? "AFTER HOURS" : "LEO SEASON"}
+            </span>
+          </div>
         </div>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow">Hannah’s birthday · Issue No. 22</p>
+          <p className="eyebrow">
+            Hannah’s birthday ·{" "}
+            {edition === "late" ? "The Late Cut" : "Issue No. 22"}
+          </p>
           <h1>
-            Your day.
+            {edition === "late" ? "Start later." : "Your day."}
             <br />
-            <em>Your Say.</em>
+            <em>{edition === "late" ? "Keep the night." : "Your Say."}</em>
           </h1>
-          <p className="hero-deck">Four Course. Four Parts. Four Memories.</p>
+          <p className="hero-deck">
+            {edition === "late"
+              ? "Two o’clock pickup. Three chapters. Zero rushing."
+              : "Four Course. Four Parts. Four Memories."}
+          </p>
           <a className="review-link" href="#review">
             Start the review <span aria-hidden="true">↓</span>
           </a>
@@ -656,14 +1029,20 @@ export default function Home() {
           <div className="sun-disc">
             <LeoSunMark className="hero-sun-icon" />
           </div>
-          <p>THE BIRTHDAY ISSUE</p>
+          <p>
+            {edition === "late" ? "THE AFTER-HOURS EDITION" : "THE BIRTHDAY ISSUE"}
+          </p>
         </div>
       </section>
 
       <section className="brief">
         <div>
           <span className="brief-label">The premise</span>
-          <p>A memorable opening. Creative second. Competitive before dinner.</p>
+          <p>
+            {edition === "late"
+              ? "Pick up in Thornhill. Make the first move. Create after six."
+              : "A memorable opening. Creative second. Competitive before dinner."}
+          </p>
         </div>
         <div>
           <span className="brief-label">Your authority</span>
@@ -671,20 +1050,37 @@ export default function Home() {
         </div>
         <div>
           <span className="brief-label">The pace</span>
-          <p>Real buffers between every reservation. We are not chasing clocks.</p>
+          <p>
+            {edition === "late"
+              ? "The route moves south once. Rush hour gets a real buffer."
+              : "Real buffers between every reservation. We are not chasing clocks."}
+          </p>
         </div>
       </section>
 
       <section className="review-section" id="review">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">The proposed cut</p>
-            <h2>Four chapters. Your call.</h2>
+            <p className="eyebrow">
+              {edition === "late" ? "The alternate cut" : "The proposed cut"}
+            </p>
+            <h2>
+              {activeChapters.length} chapters. Your call.
+            </h2>
           </div>
-          <div className="progress-block" aria-label={`${answered} of 4 plans reviewed`}>
+          <div
+            className="progress-block"
+            aria-label={`${answered} of ${activeChapters.length} plans reviewed`}
+          >
             <div className="progress-copy">
-              <span>{answered}/4 selected</span>
-              <span>{answered === 4 ? "Your timetable is ready" : "Choose dinner to finish"}</span>
+              <span>
+                {answered}/{activeChapters.length} selected
+              </span>
+              <span>
+                {answered === activeChapters.length
+                  ? "Your timetable is ready"
+                  : "Choose dinner to finish"}
+              </span>
             </div>
             <div className="progress-track">
               <span style={{ width: `${progress}%` }} />
@@ -699,11 +1095,15 @@ export default function Home() {
           </div>
           <div>
             <p>Live itinerary · updates with every choice</p>
-            <h3>Every option fits the same day.</h3>
+            <h3>
+              {edition === "late"
+                ? "The route starts north and moves south."
+                : "Every option fits the same day."}
+            </h3>
             <p>
-              Choose one card in each chapter. The timetable at the bottom
-              automatically rebuilds the pickup, reservations, travel windows,
-              and reset time around your version of the day.
+              {edition === "late"
+                ? "Pickup stays fixed at 2 PM in Thornhill. Every choice below recalculates the rush-hour transfer and dinner runway."
+                : "Choose one card in each chapter. The timetable at the bottom automatically rebuilds the pickup, reservations, travel windows, and reset time around your version of the day."}
             </p>
           </div>
           <span className="schedule-stamp">PICK · MIX · REVIEW</span>
@@ -718,15 +1118,25 @@ export default function Home() {
             <p className="pickup-kicker">Prelude 00 · your chariot arrives</p>
             <h3 id="pickup-title">Birthday pickup</h3>
             <p>
-              One full hour before the first booking: enough time for the first
-              birthday reward, the drive, and a calm arrival at{" "}
-              {selectedPortrait.shortName}.
+              {edition === "late" ? (
+                <>
+                  Two o’clock in Thornhill, on purpose: enough time for the first
+                  birthday reward and a calm arrival at{" "}
+                  {selectedPortrait.shortName}.
+                </>
+              ) : (
+                <>
+                  One full hour before the first booking: enough time for the
+                  first birthday reward, the drive, and a calm arrival at{" "}
+                  {selectedPortrait.shortName}.
+                </>
+              )}
             </p>
           </div>
           <div className="pickup-notes">
-            <span>Camera-ready look</span>
+            <span>{edition === "late" ? "Pickup · Thornhill" : "Camera-ready look"}</span>
             <span>Closed-toe shoes in the car</span>
-            <span>No rushing</span>
+            <span>{edition === "late" ? "One southbound route" : "No rushing"}</span>
           </div>
         </section>
 
@@ -737,14 +1147,15 @@ export default function Home() {
               <h3 id="perks-title">A few gifts from the city.</h3>
             </div>
             <p>
-              Starbucks opens the day. Add only the extras that feel fun; the
-              flexible ones slip into the afternoon buffers.
+              {edition === "late"
+                ? "Starbucks opens the Thornhill pickup. Add only the extras that fit the southbound route or the downtown buffer."
+                : "Starbucks opens the day. Add only the extras that feel fun; the flexible ones slip into the afternoon buffers."}
             </p>
           </div>
 
           <div className="perks-grid">
             {birthdayPerks.map((perk, index) => {
-              const selected = Boolean(perks[perk.id]);
+              const selected = Boolean(currentReview.perks[perk.id]);
               return (
                 <article className={selected ? "perk-card selected" : "perk-card"} key={perk.id}>
                   <div className="perk-number">{String(index + 1).padStart(2, "0")}</div>
@@ -768,9 +1179,12 @@ export default function Home() {
                       type="button"
                       aria-pressed={selected}
                       onClick={() =>
-                        setPerks((current) => ({
-                          ...current,
-                          [perk.id]: !selected,
+                        updateCurrentReview((review) => ({
+                          ...review,
+                          perks: {
+                            ...review.perks,
+                            [perk.id]: !selected,
+                          },
                         }))
                       }
                     >
@@ -787,20 +1201,68 @@ export default function Home() {
             availability. We check the apps before leaving; the schedule never
             depends on a freebie.
           </p>
+
+          <article
+            className={
+              sephoraRestockSelected
+                ? "restock-option selected"
+                : "restock-option"
+            }
+          >
+            <div className="restock-bag" aria-hidden="true">
+              <span>22</span>
+            </div>
+            <div className="restock-copy">
+              <div className="restock-labels">
+                <span>THE BEAUTY EDIT</span>
+                <span>
+                  {formatClock(restockStart)}–{formatClock(restockEnd)}
+                </span>
+              </div>
+              <h4>Sephora Restock Run</h4>
+              <p>
+                I hand you a birthday bag; you take the lead through Sephora
+                and replenish the makeup staples, shades, and favourites you
+                actually want.
+              </p>
+              <span className="restock-route">
+                45 MINUTES · BEST STORE FOR THE SELECTED ROUTE
+              </span>
+            </div>
+            <button
+              type="button"
+              aria-pressed={sephoraRestockSelected}
+              onClick={() =>
+                updateCurrentReview((review) => ({
+                  ...review,
+                  perks: {
+                    ...review.perks,
+                    [sephoraRestockId]: !sephoraRestockSelected,
+                  },
+                }))
+              }
+            >
+              <span aria-hidden="true">
+                {sephoraRestockSelected ? "✓" : "+"}
+              </span>
+              {sephoraRestockSelected ? "Keep the run" : "Add the run"}
+            </button>
+          </article>
         </section>
 
         <div className="timeline">
-          {chapters.map((chapter) => {
+          {activeChapters.map((chapter) => {
             const choiceChapterId: ChapterId | null =
               chapter.id === "dinner" ? null : chapter.id;
             const chapterOptions = choiceChapterId
-              ? planOptions[choiceChapterId]
+              ? activePlanOptions[choiceChapterId]
               : null;
             const selectedOption =
               choiceChapterId
                 ? getPlanOption(
+                    activePlanOptions,
                     choiceChapterId,
-                    planChoices[choiceChapterId],
+                    currentReview.planChoices[choiceChapterId],
                   )
                 : null;
             const buffer = liveBuffers.find(
@@ -879,9 +1341,12 @@ export default function Home() {
                                     role="radio"
                                     aria-checked={selected}
                                     onClick={() =>
-                                      setPlanChoices((current) => ({
-                                        ...current,
-                                        [choiceChapterId]: option.id,
+                                      updateCurrentReview((review) => ({
+                                        ...review,
+                                        planChoices: {
+                                          ...review.planChoices,
+                                          [choiceChapterId]: option.id,
+                                        },
                                       }))
                                     }
                                   >
@@ -934,21 +1399,21 @@ export default function Home() {
                       <>
                         <h3>{chapter.title}</h3>
                         <div className="chapter-meta">
-                          <span>{dinnerChapter.time}</span>
-                          <span>{dinnerChapter.place}</span>
+                          <span>{currentDinnerChapter.time}</span>
+                          <span>{currentDinnerChapter.place}</span>
                         </div>
                         <p className="availability-stamp">
-                          {dinnerChapter.availability}
+                          {currentDinnerChapter.availability}
                         </p>
                         <p className="chapter-description">
-                          {dinnerChapter.description}
+                          {currentDinnerChapter.description}
                         </p>
                         <p className="chapter-note">
                           <span>Good to know</span>
-                          {dinnerChapter.note}
+                          {currentDinnerChapter.note}
                         </p>
                         <div className="tag-row" aria-label="Highlights">
-                          {dinnerChapter.tags.map((tag) => (
+                          {currentDinnerChapter.tags.map((tag) => (
                             <span key={tag}>{tag}</span>
                           ))}
                         </div>
@@ -967,11 +1432,20 @@ export default function Home() {
                             <button
                               type="button"
                               role="radio"
-                              aria-checked={dinnerChoice === restaurant.id}
-                              className={
-                                dinnerChoice === restaurant.id ? "selected" : ""
+                              aria-checked={
+                                currentReview.dinnerChoice === restaurant.id
                               }
-                              onClick={() => setDinnerChoice(restaurant.id)}
+                              className={
+                                currentReview.dinnerChoice === restaurant.id
+                                  ? "selected"
+                                  : ""
+                              }
+                              onClick={() =>
+                                updateCurrentReview((review) => ({
+                                  ...review,
+                                  dinnerChoice: restaurant.id,
+                                }))
+                              }
                               key={restaurant.id}
                             >
                               <span className="restaurant-hours">
@@ -1014,7 +1488,9 @@ export default function Home() {
                     </div>
                     <span className="buffer-line" aria-hidden="true" />
                     <span className="buffer-badge">
-                      {buffer.minutes < 30 ? "TIGHT" : "BUFFER"}
+                      {buffer.minutes < (edition === "late" ? 45 : 30)
+                        ? "CHECK ROUTE"
+                        : "BUFFER"}
                     </span>
                   </div>
                 )}
@@ -1037,27 +1513,36 @@ export default function Home() {
 
         <div className="summary-card">
           <div className="summary-top">
-            <span>MONDAY · AUGUST 10 · TORONTO</span>
-            <span>{answered === 4 ? "FINAL CUT READY" : "DINNER PENDING"}</span>
+            <span>
+              MONDAY · AUGUST 10 ·{" "}
+              {edition === "late" ? "THORNHILL → TORONTO" : "TORONTO"}
+            </span>
+            <span>
+              {answered === activeChapters.length
+                ? "FINAL CUT READY"
+                : "DINNER PENDING"}
+            </span>
           </div>
 
           <div
             className={
-              minimumBuffer < 30
+              bufferNeedsAttention
                 ? "schedule-health needs-attention"
                 : "schedule-health"
             }
           >
-            <span aria-hidden="true">{minimumBuffer < 30 ? "!" : "✓"}</span>
+            <span aria-hidden="true">{bufferNeedsAttention ? "!" : "✓"}</span>
             <div>
               <strong>
-                {minimumBuffer < 30
+                {bufferNeedsAttention
                   ? "One transfer needs attention"
                   : "No collisions in this cut"}
               </strong>
               <p>
-                Smallest buffer: {formatDuration(minimumBuffer)} · Pickup stays
-                one hour before the opening chapter.
+                Smallest buffer: {formatDuration(minimumBuffer)} ·{" "}
+                {edition === "late"
+                  ? "Pickup stays fixed at 2:00 PM in Thornhill."
+                  : "Pickup stays one hour before the opening chapter."}
               </p>
             </div>
           </div>
@@ -1074,89 +1559,86 @@ export default function Home() {
                     ? `Perks on the route: ${selectedPerks
                         .map((perk) => perk.name)
                         .join(" · ")}`
-                    : "Direct to the opening chapter—no perks detour."}
+                    : `Direct to the ${
+                        edition === "late" ? "first move" : "opening chapter"
+                      }—no perks detour.`}
+                  {edition === "late" ? " · Thornhill" : ""}
                 </p>
               </div>
             </div>
 
-            <div className="timetable-row">
-              <time>{formatClock(selectedPortrait.start)}</time>
-              <span className="timetable-marker" aria-hidden="true" />
-              <div>
-                <span>CHAPTER 01</span>
-                <strong>{selectedPortrait.name}</strong>
-                <p>
-                  {selectedPortrait.time} · {selectedPortrait.place}
-                </p>
-              </div>
-            </div>
+            {activeActivities.map((activity, index) => {
+              const buffer = liveBuffers[index];
+              return (
+                <Fragment key={activity.id}>
+                  <div className="timetable-row">
+                    <time>{formatClock(activity.start)}</time>
+                    <span className="timetable-marker" aria-hidden="true" />
+                    <div>
+                      <span>
+                        CHAPTER {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <strong>{activity.name}</strong>
+                      <p>
+                        {activity.time} · {activity.place}
+                      </p>
+                    </div>
+                  </div>
 
-            <div className="timetable-row buffer-row">
-              <time>{formatDuration(liveBuffers[0].minutes)}</time>
-              <span className="timetable-marker" aria-hidden="true" />
-              <div>
-                <span>TRANSFER</span>
-                <strong>{liveBuffers[0].title}</strong>
-                <p>{liveBuffers[0].detail}</p>
-              </div>
-            </div>
+                  {sephoraRestockSelected &&
+                    activity.id ===
+                      currentReview.planChoices[restockAfterChapter] && (
+                      <div className="timetable-row restock-row">
+                        <time>{formatClock(restockStart)}</time>
+                        <span
+                          className="timetable-marker"
+                          aria-hidden="true"
+                        />
+                        <div>
+                          <span>EXTRA EDIT</span>
+                          <strong>Sephora Restock Run</strong>
+                          <p>
+                            {formatClock(restockStart)}–
+                            {formatClock(restockEnd)} · birthday bag + her
+                            makeup-stock picks
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
-            <div className="timetable-row">
-              <time>{formatClock(selectedWorkshop.start)}</time>
-              <span className="timetable-marker" aria-hidden="true" />
-              <div>
-                <span>CHAPTER 02</span>
-                <strong>{selectedWorkshop.name}</strong>
-                <p>
-                  {selectedWorkshop.time} · {selectedWorkshop.place}
-                </p>
-              </div>
-            </div>
-
-            <div className="timetable-row buffer-row">
-              <time>{formatDuration(liveBuffers[1].minutes)}</time>
-              <span className="timetable-marker" aria-hidden="true" />
-              <div>
-                <span>OPEN BUFFER</span>
-                <strong>{liveBuffers[1].title}</strong>
-                <p>{liveBuffers[1].detail}</p>
-              </div>
-            </div>
-
-            <div className="timetable-row">
-              <time>{formatClock(selectedEvent.start)}</time>
-              <span className="timetable-marker" aria-hidden="true" />
-              <div>
-                <span>CHAPTER 03</span>
-                <strong>{selectedEvent.name}</strong>
-                <p>
-                  {selectedEvent.time} · {selectedEvent.place}
-                </p>
-              </div>
-            </div>
-
-            <div className="timetable-row buffer-row">
-              <time>{formatDuration(liveBuffers[2].minutes)}</time>
-              <span className="timetable-marker" aria-hidden="true" />
-              <div>
-                <span>RESET</span>
-                <strong>{liveBuffers[2].title}</strong>
-                <p>{liveBuffers[2].detail}</p>
-              </div>
-            </div>
+                  {buffer && (
+                    <div className="timetable-row buffer-row">
+                      <time>{formatDuration(buffer.minutes)}</time>
+                      <span className="timetable-marker" aria-hidden="true" />
+                      <div>
+                        <span>
+                          {index === activeActivities.length - 1
+                            ? "RESET"
+                            : "TRANSFER"}
+                        </span>
+                        <strong>{buffer.title}</strong>
+                        <p>{buffer.detail}</p>
+                      </div>
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
 
             <div className="timetable-row dinner-row">
               <time>9:00 PM</time>
               <span className="timetable-marker" aria-hidden="true" />
               <div>
-                <span>CHAPTER 04</span>
+                <span>
+                  CHAPTER {String(activeActivities.length + 1).padStart(2, "0")}
+                </span>
                 <strong>
-                  {dinnerChoice
-                    ? dinnerLabels[dinnerChoice]
+                  {currentReview.dinnerChoice
+                    ? dinnerLabels[currentReview.dinnerChoice]
                     : "Choose dinner above"}
                 </strong>
                 <p>
-                  {dinnerChoice
+                  {currentReview.dinnerChoice
                     ? "Birthday dinner · final reservation follows"
                     : "One last decision and this cut is complete."}
                 </p>
@@ -1168,12 +1650,13 @@ export default function Home() {
             <span>YOUR SELECTED CUT</span>
             <div>
               <strong>
-                {selectedPortrait.shortName} · {selectedWorkshop.shortName} ·{" "}
-                {selectedEvent.shortName}
+                {activeActivities
+                  .map((activity) => activity.shortName)
+                  .join(" · ")}
               </strong>
               <p>
-                {dinnerChoice
-                  ? `Finishing at ${dinnerLabels[dinnerChoice]}`
+                {currentReview.dinnerChoice
+                  ? `Finishing at ${dinnerLabels[currentReview.dinnerChoice]}`
                   : "Dinner still needs your vote"}
               </p>
             </div>
@@ -1182,8 +1665,13 @@ export default function Home() {
           <label className="note-field">
             <span>Anything else?</span>
             <textarea
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
+              value={currentReview.note}
+              onChange={(event) =>
+                updateCurrentReview((review) => ({
+                  ...review,
+                  note: event.target.value,
+                }))
+              }
               placeholder="Move a time, change the energy, add a dress-code request…"
               rows={4}
             />

@@ -325,10 +325,32 @@ button {
 .agenda-shell {
   min-height: 100vh;
   overflow: hidden;
+  color: var(--ink);
   background:
     radial-gradient(circle at 93% 22%, rgba(233, 160, 173, 0.2), transparent 22rem),
     var(--paper);
   animation: page-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    color 0.45s ease,
+    background-color 0.45s ease;
+}
+
+.agenda-shell.late-edition {
+  --ink: #14162f;
+  --paper: #e9ecff;
+  --paper-deep: #d6dcff;
+  --plum: #4c40c7;
+  --plum-deep: #191733;
+  --rose: #f49aba;
+  --blue: #8aabff;
+  --gold: #d8ff68;
+  --orange: #ff745d;
+  --white: #faf9ff;
+  --line: rgba(20, 22, 47, 0.24);
+  background:
+    radial-gradient(circle at 88% 18%, rgba(216, 255, 104, 0.32), transparent 24rem),
+    radial-gradient(circle at 8% 55%, rgba(76, 64, 199, 0.15), transparent 32rem),
+    var(--paper);
 }
 
 @keyframes page-enter {
@@ -371,6 +393,56 @@ button {
   letter-spacing: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.edition-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-deep) 72%, var(--white));
+}
+
+.edition-switcher button {
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.edition-switcher button:hover {
+  transform: translateY(-1px);
+}
+
+.edition-switcher button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--white);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--plum) 28%, transparent);
+}
+
+.edition-switcher button:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
 .header-meta {
   display: flex;
   align-items: center;
@@ -388,6 +460,10 @@ button {
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgba(255, 253, 248, 0.5);
+}
+
+.late-edition .leo-pill {
+  background: color-mix(in srgb, var(--gold) 36%, var(--white));
 }
 
 .leo-pill-icon {
@@ -961,6 +1037,126 @@ button {
   font-size: 0.72rem;
   font-style: italic;
   text-align: center;
+}
+
+.restock-option {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 26px;
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid var(--ink);
+  background: var(--white);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.restock-option.selected {
+  background: color-mix(in srgb, var(--rose) 46%, var(--white));
+  box-shadow: 6px 6px 0 var(--ink);
+  transform: translate(-3px, -3px);
+}
+
+.restock-bag {
+  position: relative;
+  display: grid;
+  width: 96px;
+  height: 104px;
+  place-items: center;
+  border: 1px solid var(--ink);
+  background:
+    linear-gradient(
+      135deg,
+      var(--ink) 0 12%,
+      var(--white) 12% 24%,
+      var(--ink) 24% 36%,
+      var(--white) 36% 48%,
+      var(--ink) 48% 60%,
+      var(--white) 60% 72%,
+      var(--ink) 72% 84%,
+      var(--white) 84%
+    );
+}
+
+.restock-bag::before {
+  position: absolute;
+  top: -15px;
+  width: 45px;
+  height: 26px;
+  border: 1px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0;
+  content: "";
+}
+
+.restock-bag span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--rose);
+  font-family: var(--serif);
+  font-size: 1.35rem;
+}
+
+.restock-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.restock-copy h4 {
+  margin: 12px 0 6px;
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+}
+
+.restock-copy p {
+  max-width: 650px;
+  margin: 0 0 12px;
+  font-family: var(--serif);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.restock-route {
+  font-size: 0.53rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.restock-option > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.restock-option > button span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.restock-option.selected > button {
+  background: var(--plum);
+  color: var(--white);
 }
 
 .chapter-card {
@@ -1903,6 +2099,16 @@ footer > span {
     right: -105px;
   }
 
+  .site-header {
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 10px;
+  }
+
   .hero {
     min-height: auto;
     grid-template-columns: 1fr;
@@ -2038,6 +2244,16 @@ footer > span {
   .site-header {
     align-items: flex-start;
     padding: 18px 20px;
+  }
+
+  .header-actions {
+    max-width: calc(100% - 92px);
+  }
+
+  .edition-switcher button {
+    min-height: 30px;
+    padding: 6px 9px;
+    font-size: 0.48rem;
   }
 
   .header-meta {
@@ -2199,6 +2415,38 @@ footer > span {
   }
 
   .perk-action button {
+    justify-content: center;
+  }
+
+  .restock-option {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 18px;
+    padding: 22px 18px;
+  }
+
+  .restock-bag {
+    width: 68px;
+    height: 80px;
+  }
+
+  .restock-bag span {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .restock-labels {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .restock-copy h4 {
+    font-size: 1.65rem;
+  }
+
+  .restock-option > button {
+    grid-column: 1 / -1;
     justify-content: center;
   }
 
