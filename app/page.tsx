@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 type Vote = "absolutely" | "maybe" | "swap";
 type VoteMap = Record<string, Vote | undefined>;
 type ChoiceMap = Record<string, string | undefined>;
+type PerkMap = Record<string, boolean | undefined>;
 type DinnerChoice = "pie-bar" | "animl";
 
 function LeoConstellation({ className = "" }: { className?: string }) {
@@ -141,6 +142,57 @@ const dinnerLabels: Record<DinnerChoice, string> = {
   animl: "ANIML",
 };
 
+const birthdayPerks = [
+  {
+    id: "starbucks",
+    name: "Starbucks",
+    reward: "A handcrafted drink, food item, or ready-to-drink bottled beverage.",
+    timing: "12:05 PM · first stop",
+    route: "The opening move after pickup",
+    eligibility:
+      "Rewards account must be 7+ days old, have her birthday saved, and have one Star-earning purchase this year. Green-tier reward is valid on her birthday.",
+    prep: "SET UP BY AUG 3",
+    source: "https://www.starbucks.ca/rewards/terms/",
+  },
+  {
+    id: "chatime",
+    name: "Chatime",
+    reward: "A free birthday drink in the Societea app.",
+    timing: "Afternoon buffer · optional",
+    route: "Easy add-on if a participating store fits the drive",
+    eligibility:
+      "Join Societea and make one qualifying loyalty purchase before her birthday. The birthday coupon is valid for 7 days.",
+    prep: "MAKE 1 PURCHASE BEFORE AUG 10",
+    source: "https://chatime.ca/rewards/",
+  },
+  {
+    id: "booster",
+    name: "Booster Juice",
+    reward: "The birthday offer shown in the Booster Rewards app.",
+    timing: "Cross-town buffer · optional",
+    route: "A healthier pit stop between chapters",
+    eligibility:
+      "Account must be 7+ days old with her birthday saved and one qualifying purchase in the past year. The offer is valid for 7 days.",
+    prep: "SET UP BY AUG 3",
+    source: "https://boosterjuice.com/en-ca/a/faq",
+  },
+  {
+    id: "sephora",
+    name: "Sephora",
+    reward: "Her choice of a Beauty Insider birthday mini set, while supplies last.",
+    timing: "Long afternoon buffer · optional",
+    route: "The fashion-and-beauty detour before K1",
+    eligibility:
+      "Beauty Insider members can redeem in a Canadian store during their birthday window. No purchase is required in store.",
+    prep: "CHECK BEAUTY INSIDER ACCOUNT",
+    source: "https://www.sephora.com/ca/en/beauty/birthday-gift",
+  },
+] as const;
+
+const defaultPerks: PerkMap = {
+  starbucks: true,
+};
+
 const buffers = [
   {
     after: "portrait",
@@ -177,12 +229,15 @@ export default function Home() {
   const [gateError, setGateError] = useState("");
   const [votes, setVotes] = useState<VoteMap>({});
   const [choices, setChoices] = useState<ChoiceMap>({});
+  const [perks, setPerks] = useState<PerkMap>(defaultPerks);
   const [dinnerChoice, setDinnerChoice] = useState<DinnerChoice | "">("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const savedUnlock = window.sessionStorage.getItem("twenty-two-edit-unlocked");
+    // This is a one-time restore from browser storage after the client mounts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedUnlock === "yes") setUnlocked(true);
 
     const savedReview = window.localStorage.getItem("twenty-two-edit-review");
@@ -191,6 +246,7 @@ export default function Home() {
         const parsed = JSON.parse(savedReview);
         setVotes(parsed.votes ?? {});
         setChoices(parsed.choices ?? {});
+        setPerks(parsed.perks ?? defaultPerks);
         setDinnerChoice(parsed.dinnerChoice ?? "");
         setNote(parsed.note ?? "");
       } catch {
@@ -202,12 +258,16 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem(
       "twenty-two-edit-review",
-      JSON.stringify({ votes, choices, dinnerChoice, note }),
+      JSON.stringify({ votes, choices, perks, dinnerChoice, note }),
     );
-  }, [votes, choices, dinnerChoice, note]);
+  }, [votes, choices, perks, dinnerChoice, note]);
 
   const answered = Object.keys(votes).length;
   const progress = (answered / chapters.length) * 100;
+  const selectedPerks = useMemo(
+    () => birthdayPerks.filter((perk) => perks[perk.id]),
+    [perks],
+  );
 
   const reviewText = useMemo(() => {
     const lines = chapters.map((chapter) => {
@@ -225,12 +285,18 @@ export default function Home() {
     return [
       "HANNAH’S TWENTY-TWO EDIT",
       "Monday, August 10 · Toronto",
+      "Pickup: 12:00 PM",
+      `Birthday perks: ${
+        selectedPerks.length
+          ? selectedPerks.map((perk) => perk.name).join(", ")
+          : "Skip the perks run"
+      }`,
       "",
       ...lines,
       "",
       `Note: ${note.trim() || "No extra notes."}`,
     ].join("\n");
-  }, [votes, choices, dinnerChoice, note]);
+  }, [votes, choices, dinnerChoice, note, selectedPerks]);
 
   function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -269,6 +335,7 @@ export default function Home() {
   function resetReview() {
     setVotes({});
     setChoices({});
+    setPerks(defaultPerks);
     setDinnerChoice("");
     setNote("");
     setCopied(false);
@@ -447,6 +514,85 @@ export default function Home() {
           <span className="schedule-stamp">BOOKABLE FALLBACK</span>
         </aside>
 
+        <section className="pickup-prelude" aria-labelledby="pickup-title">
+          <div className="pickup-time">
+            <span>12:00</span>
+            <small>PM</small>
+          </div>
+          <div className="pickup-copy">
+            <p className="pickup-kicker">Prelude 00 · your chariot arrives</p>
+            <h3 id="pickup-title">Birthday pickup</h3>
+            <p>
+              One full hour before the first booking: enough time for the first
+              birthday reward, the drive, and a calm arrival at Monochrome.
+            </p>
+          </div>
+          <div className="pickup-notes">
+            <span>Camera-ready look</span>
+            <span>Closed-toe shoes in the car</span>
+            <span>No rushing</span>
+          </div>
+        </section>
+
+        <section className="perks-run" aria-labelledby="perks-title">
+          <div className="perks-intro">
+            <div>
+              <p className="eyebrow">The birthday perks run</p>
+              <h3 id="perks-title">A few gifts from the city.</h3>
+            </div>
+            <p>
+              Starbucks opens the day. Add only the extras that feel fun; the
+              flexible ones slip into the afternoon buffers.
+            </p>
+          </div>
+
+          <div className="perks-grid">
+            {birthdayPerks.map((perk, index) => {
+              const selected = Boolean(perks[perk.id]);
+              return (
+                <article className={selected ? "perk-card selected" : "perk-card"} key={perk.id}>
+                  <div className="perk-number">{String(index + 1).padStart(2, "0")}</div>
+                  <div className="perk-card-top">
+                    <span>{perk.timing}</span>
+                    <span>{selected ? "ON THE ROUTE" : "OPTIONAL"}</span>
+                  </div>
+                  <h4>{perk.name}</h4>
+                  <p className="perk-reward">{perk.reward}</p>
+                  <p className="perk-route">{perk.route}</p>
+                  <details>
+                    <summary>How to unlock it</summary>
+                    <p>{perk.eligibility}</p>
+                    <a href={perk.source} target="_blank" rel="noreferrer">
+                      Official terms <span aria-hidden="true">↗</span>
+                    </a>
+                  </details>
+                  <div className="perk-action">
+                    <span>{perk.prep}</span>
+                    <button
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setPerks((current) => ({
+                          ...current,
+                          [perk.id]: !selected,
+                        }))
+                      }
+                    >
+                      <span aria-hidden="true">{selected ? "✓" : "+"}</span>
+                      {selected ? "Keep it" : "Add stop"}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <p className="perks-fineprint">
+            Rewards depend on account eligibility, participating locations, and
+            availability. We check the apps before leaving; the schedule never
+            depends on a freebie.
+          </p>
+        </section>
+
         <div className="timeline">
           {chapters.map((chapter, index) => {
             const currentVote = votes[chapter.id];
@@ -603,6 +749,17 @@ export default function Home() {
           <div className="summary-top">
             <span>HANNAH’S REVIEW</span>
             <span>{answered === 4 ? "READY TO SEND" : `${4 - answered} LEFT`}</span>
+          </div>
+          <div className="summary-prelude">
+            <span>12:00 PM · PICKUP</span>
+            <div>
+              <strong>Birthday perks</strong>
+              <p>
+                {selectedPerks.length
+                  ? selectedPerks.map((perk) => perk.name).join(" · ")
+                  : "Skip the perks run"}
+              </p>
+            </div>
           </div>
           <ol>
             {chapters.map((chapter) => (
