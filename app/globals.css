@@ -966,7 +966,7 @@ button {
 .chapter-card {
   position: relative;
   display: grid;
-  grid-template-columns: 94px minmax(0, 1fr) 250px;
+  grid-template-columns: 94px minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid var(--ink);
   background: var(--white);
@@ -1024,12 +1024,20 @@ button {
 }
 
 .chapter-kicker {
-  margin: 0 0 10px;
+  margin: 0 0 4px;
   color: var(--plum);
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.15em;
   text-transform: uppercase;
+}
+
+.choice-context {
+  margin: 0 0 13px;
+  color: rgba(32, 28, 25, 0.55);
+  font-family: var(--serif);
+  font-size: 0.82rem;
+  font-style: italic;
 }
 
 .chapter-main h3 {
@@ -1067,6 +1075,12 @@ button {
   font-size: 0.54rem;
   font-weight: 900;
   letter-spacing: 0.1em;
+}
+
+.availability-stamp.needs-check {
+  background: var(--paper);
+  color: var(--plum);
+  border-style: dashed;
 }
 
 .chapter-card.plum .availability-stamp {
@@ -1115,6 +1129,159 @@ button {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.choice-ballot {
+  margin-top: 34px;
+  padding-top: 25px;
+  border-top: 1px solid var(--ink);
+}
+
+.choice-ballot-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.choice-ballot-heading > span {
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.choice-ballot-heading p {
+  margin: 0;
+  color: rgba(32, 28, 25, 0.66);
+  font-family: var(--serif);
+  font-size: 0.83rem;
+}
+
+.plan-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.plan-option {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--ink);
+  background: var(--white);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.plan-option:hover {
+  box-shadow: 5px 5px 0 var(--ink);
+  transform: translate(-2px, -2px);
+}
+
+.plan-option.selected {
+  background: color-mix(in srgb, var(--accent) 78%, var(--white));
+  box-shadow: 5px 5px 0 var(--ink);
+  transform: translate(-2px, -2px);
+}
+
+.plan-option > button {
+  display: grid;
+  min-height: 278px;
+  align-content: start;
+  padding: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.plan-option-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.plan-option-top i {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--white);
+  font-size: 0.63rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.option-status {
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.option-status.needs-check {
+  padding: 4px 6px;
+  border: 1px dashed var(--plum);
+  color: var(--plum);
+}
+
+.plan-option strong {
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.plan-option em {
+  margin: 6px 0 15px;
+  color: var(--plum);
+  font-family: var(--serif);
+  font-size: 0.86rem;
+}
+
+.plan-option button > p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.option-place {
+  align-self: end;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(32, 28, 25, 0.22);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.plan-option > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-top: 1px solid var(--ink);
+  color: var(--ink);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.plan-option > a:hover {
+  background: var(--ink);
+  color: var(--white);
 }
 
 .restaurant-ballot {
@@ -1425,6 +1592,142 @@ button {
   font-size: 0.59rem;
   font-weight: 800;
   letter-spacing: 0.13em;
+}
+
+.schedule-health {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 13px;
+  margin-top: 18px;
+  padding: 13px 15px;
+  border: 1px solid var(--ink);
+  background: color-mix(in srgb, var(--gold) 45%, var(--white));
+}
+
+.schedule-health > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--white);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.schedule-health.needs-attention {
+  background: color-mix(in srgb, var(--rose) 65%, var(--white));
+}
+
+.schedule-health strong {
+  font-family: var(--serif);
+  font-size: 0.98rem;
+  font-weight: 400;
+}
+
+.schedule-health p {
+  margin: 2px 0 0;
+  color: rgba(32, 28, 25, 0.64);
+  font-size: 0.62rem;
+}
+
+.timetable {
+  margin-top: 18px;
+  border-top: 1px solid var(--ink);
+}
+
+.timetable-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 82px 22px 1fr;
+  gap: 12px;
+  min-height: 88px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.timetable-row > time {
+  padding-top: 4px;
+  color: var(--plum);
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.timetable-marker {
+  position: relative;
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: 7px auto 0;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--plum);
+  box-shadow: 0 0 0 4px var(--paper);
+}
+
+.timetable-marker::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 4px;
+  height: 59px;
+  border-left: 1px dashed var(--line);
+}
+
+.timetable-row:last-child .timetable-marker::after {
+  display: none;
+}
+
+.timetable-row > div > span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.timetable-row > div > strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  font-weight: 400;
+}
+
+.timetable-row > div > p {
+  margin: 4px 0 0;
+  color: rgba(32, 28, 25, 0.62);
+  font-size: 0.64rem;
+  line-height: 1.4;
+}
+
+.timetable-row.buffer-row {
+  min-height: 70px;
+  background: rgba(32, 28, 25, 0.025);
+}
+
+.timetable-row.buffer-row > time {
+  color: rgba(32, 28, 25, 0.55);
+  font-size: 0.75rem;
+}
+
+.timetable-row.buffer-row .timetable-marker {
+  width: 8px;
+  height: 8px;
+  border-style: dashed;
+  background: var(--paper);
+}
+
+.timetable-row.dinner-row {
+  background: color-mix(in srgb, var(--plum) 10%, transparent);
+}
+
+.selected-cut {
+  margin-top: 5px;
+  border-top: 1px solid var(--ink);
 }
 
 .summary-prelude {
@@ -1945,17 +2248,18 @@ footer > span {
     min-height: 220px;
   }
 
-  .vote-panel {
-    grid-column: 1 / -1;
-    padding: 23px 18px;
+  .choice-ballot-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
   }
 
-  .vote-buttons {
+  .plan-option-grid {
     grid-template-columns: 1fr;
   }
 
-  .vote-buttons button {
-    justify-content: flex-start;
+  .plan-option > button {
+    min-height: 255px;
   }
 
   .buffer-card {
@@ -1991,6 +2295,15 @@ footer > span {
   .summary-prelude {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .timetable-row {
+    grid-template-columns: 70px 18px 1fr;
+    gap: 8px;
+  }
+
+  .timetable-row > time {
+    font-size: 0.78rem;
   }
 
   .summary-actions {

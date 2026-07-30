@@ -2,11 +2,26 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type Vote = "absolutely" | "maybe" | "swap";
-type VoteMap = Record<string, Vote | undefined>;
-type ChoiceMap = Record<string, string | undefined>;
 type PerkMap = Record<string, boolean | undefined>;
 type DinnerChoice = "pie-bar" | "animl";
+type ChapterId = "portrait" | "candles" | "karting";
+type PlanChoiceMap = Record<ChapterId, string>;
+
+type PlanOption = {
+  id: string;
+  name: string;
+  shortName: string;
+  time: string;
+  start: number;
+  end: number;
+  place: string;
+  description: string;
+  note: string;
+  tags: readonly string[];
+  availability: string;
+  confidence: "confirmed" | "check";
+  source: string;
+};
 
 function LeoConstellation({ className = "" }: { className?: string }) {
   return (
@@ -52,46 +67,22 @@ const chapters = [
   {
     id: "portrait",
     number: "01",
-    kicker: "The cover shoot",
-    title: "Monochrome Portrait",
-    time: "1:00–1:30 PM",
-    place: "621A Bloor Street West",
-    description:
-      "A private black-and-white self-portrait session. We control the shutter, the poses, and which frames make the final edit.",
-    note: "Bring one look that feels unmistakably you. Monography opens at 1 PM on Mondays.",
-    tags: ["Fallback timing", "Private studio", "Finished photographs"],
-    availability: "MONDAY OPENING · 1 PM",
-    alternatives: ["Keep the photos, move the time", "Vintage fashion hunt", "Skip this chapter"],
+    kicker: "The opening scene",
+    title: "Choose the First Look",
     colour: "blue",
   },
   {
     id: "candles",
     number: "02",
-    kicker: "The scent story",
-    title: "Yummi Candle Workshop",
-    time: "2:00–4:00 PM",
-    place: "The Distillery District",
-    description:
-      "Choose, mix, pour, and name a collection of scents. The workshop is guided, relaxed, and everything comes home with us.",
-    note: "Closed-toe shoes; excellent candle names encouraged.",
-    tags: ["Hands-on", "Eight scents", "Take-home collection"],
-    availability: "LIVE CHECK · 13 SPOTS AT 2 PM",
-    alternatives: ["Keep it, choose fewer scents", "Mosaic lamp studio", "Skip this chapter"],
+    kicker: "The creative chapter",
+    title: "Choose a Workshop",
     colour: "rose",
   },
   {
     id: "karting",
     number: "03",
     kicker: "The main event",
-    title: "K1 Championship",
-    time: "6:30 PM · about 75 minutes",
-    place: "Downsview",
-    description:
-      "A proper two-person racing championship: practice, fastest lap, and a final. Bragging rights remain valid for one full year.",
-    note: "Comfortable clothes and closed-toe shoes. Trophy energy.",
-    tags: ["Competitive", "High energy", "Birthday trophy"],
-    availability: "75-MINUTE RACE BLOCK",
-    alternatives: ["Keep K1, fewer races", "Activate Games", "Axe-throwing match"],
+    title: "Choose the Competition",
     colour: "gold",
   },
   {
@@ -106,10 +97,186 @@ const chapters = [
     note: "The restaurant is not a surprise. You choose the mood first.",
     tags: ["No rushing", "Dress-up moment", "Dessert mandatory"],
     availability: "MONDAY AT 9 · 2 OPEN OPTIONS",
-    alternatives: ["Intimate & polished", "Lively sharing plates", "Chef’s counter"],
     colour: "plum",
   },
 ] as const;
+
+const dinnerChapter = chapters[3];
+
+const planOptions: Record<ChapterId, readonly PlanOption[]> = {
+  portrait: [
+    {
+      id: "monochrome",
+      name: "Monography Monochrome",
+      shortName: "Monochrome portrait",
+      time: "1:00–1:30 PM",
+      start: 13 * 60,
+      end: 13 * 60 + 30,
+      place: "621A Bloor Street West",
+      description:
+        "A private black-and-white self-portrait studio. We control the shutter, poses, and which frames make the final edit.",
+      note: "Bring one camera-ready look that feels unmistakably you.",
+      tags: ["Private studio", "Finished photographs", "30 minutes"],
+      availability: "MONDAY OPENING · SLOT TO BOOK",
+      confidence: "confirmed",
+      source: "https://monography.ca/",
+    },
+    {
+      id: "panchrome",
+      name: "Monography Panchrome",
+      shortName: "Colour portrait",
+      time: "1:00–1:30 PM",
+      start: 13 * 60,
+      end: 13 * 60 + 30,
+      place: "621A Bloor Street West",
+      description:
+        "The same self-directed portrait idea in colour, with five bright backdrops and retouched digital images to keep.",
+      note: "The fashion-editorial version of the opening scene.",
+      tags: ["Five backdrops", "Retouched JPGs", "30 minutes"],
+      availability: "MONDAY SESSION · SLOT TO CONFIRM",
+      confidence: "check",
+      source: "https://monography.ca/panchrome/",
+    },
+    {
+      id: "bata",
+      name: "Bata Fashion Hunt",
+      shortName: "Bata fashion hunt",
+      time: "12:30–1:30 PM",
+      start: 12 * 60 + 30,
+      end: 13 * 60 + 30,
+      place: "Bata Shoe Museum · 327 Bloor Street West",
+      description:
+        "A playful designer-shoe challenge: find the impossible heel, steal one detail for a future look, and crown the shoe of the birthday.",
+      note: "Less posed, more roaming—finished with one editorial birthday photo.",
+      tags: ["Fashion", "Mini challenge", "Open Monday"],
+      availability: "OPEN MONDAY · 10 AM–5 PM",
+      confidence: "confirmed",
+      source: "https://batashoemuseum.ca/category/visit/",
+    },
+  ],
+  candles: [
+    {
+      id: "yummi",
+      name: "Yummi Candle Workshop",
+      shortName: "Yummi candles",
+      time: "2:00–4:00 PM",
+      start: 14 * 60,
+      end: 16 * 60,
+      place: "The Distillery District",
+      description:
+        "Choose, mix, pour, and name a collection of scents in a guided workshop. Everything comes home with us.",
+      note: "Closed-toe shoes; excellent candle names encouraged.",
+      tags: ["Hands-on", "Eight scents", "Take-home collection"],
+      availability: "MONDAY CLASS · 2 PM",
+      confidence: "confirmed",
+      source: "https://yummicandles.ca/pages/candle-making-workshops",
+    },
+    {
+      id: "mosaic",
+      name: "DIYLabs Mosaic Lamp",
+      shortName: "Turkish mosaic lamp",
+      time: "2:00–4:30 PM",
+      start: 14 * 60,
+      end: 16 * 60 + 30,
+      place: "DIYLabs · 877 Alness Street, North York",
+      description:
+        "Design a Turkish mosaic lamp over tea and baklava, then bring the finished lamp home after the guided studio session.",
+      note: "The lamp travels home; the simple grout step happens after the glue dries.",
+      tags: ["Beginner friendly", "Take-home lamp", "2.5 hours"],
+      availability: "DAILY CLASS · 2 PM",
+      confidence: "confirmed",
+      source: "https://diylabs.ca/products/register",
+    },
+    {
+      id: "lip-lab",
+      name: "Lip Lab Custom Colour",
+      shortName: "Custom lip colour",
+      time: "2:15–3:15 PM",
+      start: 14 * 60 + 15,
+      end: 15 * 60 + 15,
+      place: "Lip Lab · Queen West",
+      description:
+        "Create a one-of-one lipstick, gloss, balm, or cheek colour—then choose its scent, case, name, and engraving.",
+      note: "The most fashion-forward option, fully finished and carried home.",
+      tags: ["Custom shade", "Engraved", "About 1 hour"],
+      availability: "RESERVATION TO CONFIRM",
+      confidence: "check",
+      source: "https://www.liplab.com/pages/experience",
+    },
+    {
+      id: "fragrance",
+      name: "Ratelier Custom Fragrance",
+      shortName: "Custom fragrance",
+      time: "2:00–4:30 PM",
+      start: 14 * 60,
+      end: 16 * 60 + 30,
+      place: "Ratelier · Trinity Bellwoods",
+      description:
+        "Explore more than 100 ingredients, experiment, and blend a personal fragrance that can be bottled to take home.",
+      note: "A private Monday daytime session has to be requested before this becomes bookable.",
+      tags: ["100+ ingredients", "Personal formula", "2–2.5 hours"],
+      availability: "MONDAY REQUEST · NOT YET CONFIRMED",
+      confidence: "check",
+      source: "https://www.ratelier.ca/workshop",
+    },
+  ],
+  karting: [
+    {
+      id: "k1",
+      name: "K1 Championship",
+      shortName: "K1 championship",
+      time: "6:30–7:45 PM",
+      start: 18 * 60 + 30,
+      end: 19 * 60 + 45,
+      place: "K1 Speed · 75 Carl Hall Road",
+      description:
+        "A proper two-person racing championship: practice, fastest lap, and a final. Bragging rights last one full year.",
+      note: "Comfortable clothes, closed-toe shoes, and trophy energy.",
+      tags: ["Competitive", "High energy", "75 minutes"],
+      availability: "OPEN MONDAY · UNTIL 10 PM",
+      confidence: "confirmed",
+      source: "https://www.k1speed.ca/location/toronto/",
+    },
+    {
+      id: "activate",
+      name: "Activate Stockyards",
+      shortName: "Activate games",
+      time: "6:30–7:45 PM",
+      start: 18 * 60 + 30,
+      end: 19 * 60 + 45,
+      place: "Activate · 30 Weston Road",
+      description:
+        "Fast physical and mental game rooms built around lights, lasers, climbing, puzzles, teamwork, and score-chasing.",
+      note: "A sneaker-and-comfortable-clothes chapter with lots of variety.",
+      tags: ["Physical games", "Score chasing", "Open Monday"],
+      availability: "OPEN MONDAY · 11 AM–10 PM",
+      confidence: "confirmed",
+      source: "https://playactivate.com/toronto-stockyards",
+    },
+    {
+      id: "pursuit",
+      name: "Pursuit OCR",
+      shortName: "Pursuit obstacle course",
+      time: "6:15–7:45 PM",
+      start: 18 * 60 + 15,
+      end: 19 * 60 + 45,
+      place: "Pursuit OCR · 75 Westmore Drive",
+      description:
+        "A giant indoor obstacle playground with climbing, crawling, racing, and enough challenges to turn the night into a rematch.",
+      note: "The most physical option; waiver, athletic clothes, and sneakers required.",
+      tags: ["30,000 sq ft", "Obstacle course", "90 minutes"],
+      availability: "OPEN MONDAY · 2–9:30 PM",
+      confidence: "confirmed",
+      source: "https://pursuitocr.com/",
+    },
+  ],
+};
+
+const defaultPlanChoices: PlanChoiceMap = {
+  portrait: "monochrome",
+  candles: "yummi",
+  karting: "k1",
+};
 
 const dinnerOptions = [
   {
@@ -147,7 +314,7 @@ const birthdayPerks = [
     id: "starbucks",
     name: "Starbucks",
     reward: "A handcrafted drink, food item, or ready-to-drink bottled beverage.",
-    timing: "12:05 PM · first stop",
+    timing: "First stop · just after pickup",
     route: "The opening move after pickup",
     eligibility:
       "Rewards account must be 7+ days old, have her birthday saved, and have one Star-earning purchase this year. Green-tier reward is valid on her birthday.",
@@ -193,32 +360,27 @@ const defaultPerks: PerkMap = {
   starbucks: true,
 };
 
-const buffers = [
-  {
-    after: "portrait",
-    time: "30 min",
-    title: "Direct transfer",
-    detail: "Bloor → Distillery. This is the tight part of the bookable fallback.",
-  },
-  {
-    after: "candles",
-    time: "2h 30m",
-    title: "Candle cure + cross-town roam",
-    detail: "Browse, snack, collect the candles, then drive to Downsview without sprinting.",
-  },
-  {
-    after: "karting",
-    time: "75 min",
-    title: "The reset",
-    detail: "Drive, change, fix hair, and arrive at dinner composed.",
-  },
-] as const;
+function getPlanOption(chapter: ChapterId, optionId: string) {
+  return (
+    planOptions[chapter].find((option) => option.id === optionId) ??
+    planOptions[chapter][0]
+  );
+}
 
-const voteLabels: Record<Vote, string> = {
-  absolutely: "Absolutely",
-  maybe: "Maybe",
-  swap: "Swap it",
-};
+function formatClock(minutes: number) {
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+function formatDuration(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
+}
 
 export default function Home() {
   const [unlocked, setUnlocked] = useState(false);
@@ -227,8 +389,8 @@ export default function Home() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const [gateError, setGateError] = useState("");
-  const [votes, setVotes] = useState<VoteMap>({});
-  const [choices, setChoices] = useState<ChoiceMap>({});
+  const [planChoices, setPlanChoices] =
+    useState<PlanChoiceMap>(defaultPlanChoices);
   const [perks, setPerks] = useState<PerkMap>(defaultPerks);
   const [dinnerChoice, setDinnerChoice] = useState<DinnerChoice | "">("");
   const [note, setNote] = useState("");
@@ -244,8 +406,10 @@ export default function Home() {
     if (savedReview) {
       try {
         const parsed = JSON.parse(savedReview);
-        setVotes(parsed.votes ?? {});
-        setChoices(parsed.choices ?? {});
+        setPlanChoices({
+          ...defaultPlanChoices,
+          ...(parsed.planChoices ?? {}),
+        });
         setPerks(parsed.perks ?? defaultPerks);
         setDinnerChoice(parsed.dinnerChoice ?? "");
         setNote(parsed.note ?? "");
@@ -258,45 +422,71 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem(
       "twenty-two-edit-review",
-      JSON.stringify({ votes, choices, perks, dinnerChoice, note }),
+      JSON.stringify({ planChoices, perks, dinnerChoice, note }),
     );
-  }, [votes, choices, perks, dinnerChoice, note]);
+  }, [planChoices, perks, dinnerChoice, note]);
 
-  const answered = Object.keys(votes).length;
+  const selectedPortrait = getPlanOption("portrait", planChoices.portrait);
+  const selectedWorkshop = getPlanOption("candles", planChoices.candles);
+  const selectedEvent = getPlanOption("karting", planChoices.karting);
+  const pickupTime = selectedPortrait.start - 60;
+  const answered = 3 + (dinnerChoice ? 1 : 0);
   const progress = (answered / chapters.length) * 100;
   const selectedPerks = useMemo(
     () => birthdayPerks.filter((perk) => perks[perk.id]),
     [perks],
   );
+  const liveBuffers = [
+    {
+      after: "portrait",
+      minutes: selectedWorkshop.start - selectedPortrait.end,
+      title: "Transfer to the creative chapter",
+      detail: `${selectedPortrait.place} → ${selectedWorkshop.place}`,
+    },
+    {
+      after: "candles",
+      minutes: selectedEvent.start - selectedWorkshop.end,
+      title: "The roam",
+      detail: `${selectedWorkshop.place} → ${selectedEvent.place}`,
+    },
+    {
+      after: "karting",
+      minutes: 21 * 60 - selectedEvent.end,
+      title: "The reset",
+      detail: `${selectedEvent.place} → dinner · change, fix hair, arrive composed`,
+    },
+  ];
+  const minimumBuffer = Math.min(
+    ...liveBuffers.map((buffer) => buffer.minutes),
+  );
 
   const reviewText = useMemo(() => {
-    const lines = chapters.map((chapter) => {
-      const vote = votes[chapter.id];
-      const choice = choices[chapter.id];
-      const restaurant =
-        chapter.id === "dinner" && dinnerChoice
-          ? ` · ${dinnerLabels[dinnerChoice]}`
-          : "";
-      return `${chapter.number}. ${chapter.title}: ${
-        vote ? voteLabels[vote] : "No vote yet"
-      }${choice ? ` — ${choice}` : ""}${restaurant}`;
-    });
-
     return [
       "HANNAH’S TWENTY-TWO EDIT",
       "Monday, August 10 · Toronto",
-      "Pickup: 12:00 PM",
+      `Pickup: ${formatClock(pickupTime)}`,
       `Birthday perks: ${
         selectedPerks.length
           ? selectedPerks.map((perk) => perk.name).join(", ")
           : "Skip the perks run"
       }`,
       "",
-      ...lines,
+      `01. ${selectedPortrait.name} · ${selectedPortrait.time}`,
+      `02. ${selectedWorkshop.name} · ${selectedWorkshop.time}`,
+      `03. ${selectedEvent.name} · ${selectedEvent.time}`,
+      `04. ${dinnerChoice ? dinnerLabels[dinnerChoice] : "Dinner choice pending"} · 9:00 PM`,
       "",
       `Note: ${note.trim() || "No extra notes."}`,
     ].join("\n");
-  }, [votes, choices, dinnerChoice, note, selectedPerks]);
+  }, [
+    dinnerChoice,
+    note,
+    pickupTime,
+    selectedEvent,
+    selectedPerks,
+    selectedPortrait,
+    selectedWorkshop,
+  ]);
 
   function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -319,13 +509,6 @@ export default function Home() {
     }, 650);
   }
 
-  function setVote(id: string, vote: Vote) {
-    setVotes((current) => ({ ...current, [id]: vote }));
-    if (vote !== "swap") {
-      setChoices((current) => ({ ...current, [id]: undefined }));
-    }
-  }
-
   async function copyReview() {
     await navigator.clipboard.writeText(reviewText);
     setCopied(true);
@@ -333,8 +516,7 @@ export default function Home() {
   }
 
   function resetReview() {
-    setVotes({});
-    setChoices({});
+    setPlanChoices(defaultPlanChoices);
     setPerks(defaultPerks);
     setDinnerChoice("");
     setNote("");
@@ -486,8 +668,8 @@ export default function Home() {
           </div>
           <div className="progress-block" aria-label={`${answered} of 4 plans reviewed`}>
             <div className="progress-copy">
-              <span>{answered}/4 reviewed</span>
-              <span>{answered === 4 ? "Final cut ready" : "In progress"}</span>
+              <span>{answered}/4 selected</span>
+              <span>{answered === 4 ? "Your timetable is ready" : "Choose dinner to finish"}</span>
             </div>
             <div className="progress-track">
               <span style={{ width: `${progress}%` }} />
@@ -501,30 +683,29 @@ export default function Home() {
             <i />
           </div>
           <div>
-            <p>Timing reality check · July 28</p>
-            <h3>The one necessary shift.</h3>
+            <p>Live itinerary · updates with every choice</p>
+            <h3>Every option fits the same day.</h3>
             <p>
-              The preferred request was Monochrome from 2:00–2:30 with a full
-              hour before Yummi. Yummi’s actual August 10 classes are 2:00–4:00
-              and 6:00–8:00; the evening class overlaps K1. The clean bookable
-              cut moves Monography to its 1:00 PM opening and keeps Yummi at
-              2:00 PM.
+              Choose one card in each chapter. The timetable at the bottom
+              automatically rebuilds the pickup, reservations, travel windows,
+              and reset time around your version of the day.
             </p>
           </div>
-          <span className="schedule-stamp">BOOKABLE FALLBACK</span>
+          <span className="schedule-stamp">PICK · MIX · REVIEW</span>
         </aside>
 
         <section className="pickup-prelude" aria-labelledby="pickup-title">
           <div className="pickup-time">
-            <span>12:00</span>
-            <small>PM</small>
+            <span>{formatClock(pickupTime).replace(/ [AP]M$/, "")}</span>
+            <small>{formatClock(pickupTime).slice(-2)}</small>
           </div>
           <div className="pickup-copy">
             <p className="pickup-kicker">Prelude 00 · your chariot arrives</p>
             <h3 id="pickup-title">Birthday pickup</h3>
             <p>
               One full hour before the first booking: enough time for the first
-              birthday reward, the drive, and a calm arrival at Monochrome.
+              birthday reward, the drive, and a calm arrival at{" "}
+              {selectedPortrait.shortName}.
             </p>
           </div>
           <div className="pickup-notes">
@@ -594,9 +775,22 @@ export default function Home() {
         </section>
 
         <div className="timeline">
-          {chapters.map((chapter, index) => {
-            const currentVote = votes[chapter.id];
-            const buffer = buffers.find((item) => item.after === chapter.id);
+          {chapters.map((chapter) => {
+            const choiceChapterId: ChapterId | null =
+              chapter.id === "dinner" ? null : chapter.id;
+            const chapterOptions = choiceChapterId
+              ? planOptions[choiceChapterId]
+              : null;
+            const selectedOption =
+              choiceChapterId
+                ? getPlanOption(
+                    choiceChapterId,
+                    planChoices[choiceChapterId],
+                  )
+                : null;
+            const buffer = liveBuffers.find(
+              (item) => item.after === chapter.id,
+            );
 
             return (
               <div className="timeline-unit" key={chapter.id}>
@@ -608,24 +802,135 @@ export default function Home() {
 
                   <div className="chapter-main">
                     <p className="chapter-kicker">{chapter.kicker}</p>
-                    <h3>{chapter.title}</h3>
-                    <div className="chapter-meta">
-                      <span>{chapter.time}</span>
-                      <span>{chapter.place}</span>
-                    </div>
-                    <p className="availability-stamp">{chapter.availability}</p>
-                    <p className="chapter-description">{chapter.description}</p>
-                    <p className="chapter-note">
-                      <span>Wear note</span>
-                      {chapter.note}
-                    </p>
-                    <div className="tag-row" aria-label="Highlights">
-                      {chapter.tags.map((tag) => (
-                        <span key={tag}>{tag}</span>
-                      ))}
-                    </div>
+                    <p className="choice-context">{chapter.title}</p>
 
-                    {chapter.id === "dinner" && (
+                    {selectedOption && chapterOptions && choiceChapterId ? (
+                      <>
+                        <h3>{selectedOption.name}</h3>
+                        <div className="chapter-meta">
+                          <span>{selectedOption.time}</span>
+                          <span>{selectedOption.place}</span>
+                        </div>
+                        <p
+                          className={`availability-stamp ${
+                            selectedOption.confidence === "check"
+                              ? "needs-check"
+                              : ""
+                          }`}
+                        >
+                          {selectedOption.availability}
+                        </p>
+                        <p className="chapter-description">
+                          {selectedOption.description}
+                        </p>
+                        <p className="chapter-note">
+                          <span>Good to know</span>
+                          {selectedOption.note}
+                        </p>
+                        <div className="tag-row" aria-label="Highlights">
+                          {selectedOption.tags.map((tag) => (
+                            <span key={tag}>{tag}</span>
+                          ))}
+                        </div>
+
+                        <div className="choice-ballot">
+                          <div className="choice-ballot-heading">
+                            <span>
+                              {chapterOptions.length} ways to play this
+                              chapter
+                            </span>
+                            <p>
+                              Pick one. Your timetable rebuilds itself below.
+                            </p>
+                          </div>
+                          <div
+                            className="plan-option-grid"
+                            role="radiogroup"
+                            aria-label={chapter.title}
+                          >
+                            {chapterOptions.map((option) => {
+                              const selected =
+                                planChoices[choiceChapterId] === option.id;
+                              return (
+                                <article
+                                  className={
+                                    selected
+                                      ? "plan-option selected"
+                                      : "plan-option"
+                                  }
+                                  key={option.id}
+                                >
+                                  <button
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={selected}
+                                    onClick={() =>
+                                      setPlanChoices((current) => ({
+                                        ...current,
+                                        [choiceChapterId]: option.id,
+                                      }))
+                                    }
+                                  >
+                                    <span className="plan-option-top">
+                                      <i aria-hidden="true">
+                                        {selected ? "✓" : ""}
+                                      </i>
+                                      <span
+                                        className={
+                                          option.confidence === "check"
+                                            ? "option-status needs-check"
+                                            : "option-status"
+                                        }
+                                      >
+                                        {option.confidence === "check"
+                                          ? "Confirm first"
+                                          : "Monday-ready"}
+                                      </span>
+                                    </span>
+                                    <strong>{option.name}</strong>
+                                    <em>{option.time}</em>
+                                    <p>{option.description}</p>
+                                    <span className="option-place">
+                                      {option.place}
+                                    </span>
+                                  </button>
+                                  <a
+                                    href={option.source}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Official details{" "}
+                                    <span aria-hidden="true">↗</span>
+                                  </a>
+                                </article>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h3>{chapter.title}</h3>
+                        <div className="chapter-meta">
+                          <span>{dinnerChapter.time}</span>
+                          <span>{dinnerChapter.place}</span>
+                        </div>
+                        <p className="availability-stamp">
+                          {dinnerChapter.availability}
+                        </p>
+                        <p className="chapter-description">
+                          {dinnerChapter.description}
+                        </p>
+                        <p className="chapter-note">
+                          <span>Good to know</span>
+                          {dinnerChapter.note}
+                        </p>
+                        <div className="tag-row" aria-label="Highlights">
+                          {dinnerChapter.tags.map((tag) => (
+                            <span key={tag}>{tag}</span>
+                          ))}
+                        </div>
+
                       <div className="restaurant-ballot">
                         <div className="restaurant-heading">
                           <span>Choose the finish</span>
@@ -671,62 +976,24 @@ export default function Home() {
                           </p>
                         </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="vote-panel">
-                    <p>Your vote</p>
-                    <div className="vote-buttons">
-                      {(["absolutely", "maybe", "swap"] as Vote[]).map((vote) => (
-                        <button
-                          type="button"
-                          key={vote}
-                          className={currentVote === vote ? "active" : ""}
-                          aria-pressed={currentVote === vote}
-                          onClick={() => setVote(chapter.id, vote)}
-                        >
-                          <span className="vote-mark" aria-hidden="true">
-                            {vote === "absolutely" ? "✓" : vote === "maybe" ? "?" : "↻"}
-                          </span>
-                          {voteLabels[vote]}
-                        </button>
-                      ))}
-                    </div>
-
-                    {currentVote === "swap" && (
-                      <div className="swap-panel">
-                        <label htmlFor={`swap-${chapter.id}`}>Choose a direction</label>
-                        <select
-                          id={`swap-${chapter.id}`}
-                          value={choices[chapter.id] ?? ""}
-                          onChange={(event) =>
-                            setChoices((current) => ({
-                              ...current,
-                              [chapter.id]: event.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Pick one…</option>
-                          {chapter.alternatives.map((option) => (
-                            <option value={option} key={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      </>
                     )}
                   </div>
                 </article>
 
-                {buffer && index < chapters.length - 1 && (
+                {buffer && (
                   <div className="buffer-card">
-                    <span className="buffer-time">{buffer.time}</span>
+                    <span className="buffer-time">
+                      {formatDuration(buffer.minutes)}
+                    </span>
                     <div>
                       <strong>{buffer.title}</strong>
                       <p>{buffer.detail}</p>
                     </div>
                     <span className="buffer-line" aria-hidden="true" />
-                    <span className="buffer-badge">BUFFER</span>
+                    <span className="buffer-badge">
+                      {buffer.minutes < 30 ? "TIGHT" : "BUFFER"}
+                    </span>
                   </div>
                 )}
               </div>
@@ -737,49 +1004,158 @@ export default function Home() {
 
       <section className="final-cut">
         <div className="final-copy">
-          <p className="eyebrow">The final cut</p>
-          <h2>Say what stays.</h2>
+          <p className="eyebrow">Your live timetable</p>
+          <h2>The day, assembled.</h2>
           <p>
-            Your choices save on this device. Copy the review and send it back;
-            the itinerary gets rebuilt around your answer.
+            Every choice above lands here with its real time and location. Your
+            selections save on this device, so you can come back and keep
+            editing.
           </p>
         </div>
 
         <div className="summary-card">
           <div className="summary-top">
-            <span>HANNAH’S REVIEW</span>
-            <span>{answered === 4 ? "READY TO SEND" : `${4 - answered} LEFT`}</span>
+            <span>MONDAY · AUGUST 10 · TORONTO</span>
+            <span>{answered === 4 ? "FINAL CUT READY" : "DINNER PENDING"}</span>
           </div>
-          <div className="summary-prelude">
-            <span>12:00 PM · PICKUP</span>
+
+          <div
+            className={
+              minimumBuffer < 30
+                ? "schedule-health needs-attention"
+                : "schedule-health"
+            }
+          >
+            <span aria-hidden="true">{minimumBuffer < 30 ? "!" : "✓"}</span>
             <div>
-              <strong>Birthday perks</strong>
+              <strong>
+                {minimumBuffer < 30
+                  ? "One transfer needs attention"
+                  : "No collisions in this cut"}
+              </strong>
               <p>
-                {selectedPerks.length
-                  ? selectedPerks.map((perk) => perk.name).join(" · ")
-                  : "Skip the perks run"}
+                Smallest buffer: {formatDuration(minimumBuffer)} · Pickup stays
+                one hour before the opening chapter.
               </p>
             </div>
           </div>
-          <ol>
-            {chapters.map((chapter) => (
-              <li key={chapter.id}>
-                <span>{chapter.number}</span>
-                <div>
-                  <strong>{chapter.title}</strong>
-                  <p>
-                    {votes[chapter.id]
-                      ? voteLabels[votes[chapter.id] as Vote]
-                      : "Awaiting your vote"}
-                    {choices[chapter.id] ? ` · ${choices[chapter.id]}` : ""}
-                    {chapter.id === "dinner" && dinnerChoice
-                      ? ` · ${dinnerLabels[dinnerChoice]}`
-                      : ""}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
+
+          <div className="timetable" aria-label="Selected birthday timetable">
+            <div className="timetable-row pickup-row">
+              <time>{formatClock(pickupTime)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>PRELUDE</span>
+                <strong>Birthday pickup</strong>
+                <p>
+                  {selectedPerks.length
+                    ? `Perks on the route: ${selectedPerks
+                        .map((perk) => perk.name)
+                        .join(" · ")}`
+                    : "Direct to the opening chapter—no perks detour."}
+                </p>
+              </div>
+            </div>
+
+            <div className="timetable-row">
+              <time>{formatClock(selectedPortrait.start)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>CHAPTER 01</span>
+                <strong>{selectedPortrait.name}</strong>
+                <p>
+                  {selectedPortrait.time} · {selectedPortrait.place}
+                </p>
+              </div>
+            </div>
+
+            <div className="timetable-row buffer-row">
+              <time>{formatDuration(liveBuffers[0].minutes)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>TRANSFER</span>
+                <strong>{liveBuffers[0].title}</strong>
+                <p>{liveBuffers[0].detail}</p>
+              </div>
+            </div>
+
+            <div className="timetable-row">
+              <time>{formatClock(selectedWorkshop.start)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>CHAPTER 02</span>
+                <strong>{selectedWorkshop.name}</strong>
+                <p>
+                  {selectedWorkshop.time} · {selectedWorkshop.place}
+                </p>
+              </div>
+            </div>
+
+            <div className="timetable-row buffer-row">
+              <time>{formatDuration(liveBuffers[1].minutes)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>OPEN BUFFER</span>
+                <strong>{liveBuffers[1].title}</strong>
+                <p>{liveBuffers[1].detail}</p>
+              </div>
+            </div>
+
+            <div className="timetable-row">
+              <time>{formatClock(selectedEvent.start)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>CHAPTER 03</span>
+                <strong>{selectedEvent.name}</strong>
+                <p>
+                  {selectedEvent.time} · {selectedEvent.place}
+                </p>
+              </div>
+            </div>
+
+            <div className="timetable-row buffer-row">
+              <time>{formatDuration(liveBuffers[2].minutes)}</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>RESET</span>
+                <strong>{liveBuffers[2].title}</strong>
+                <p>{liveBuffers[2].detail}</p>
+              </div>
+            </div>
+
+            <div className="timetable-row dinner-row">
+              <time>9:00 PM</time>
+              <span className="timetable-marker" aria-hidden="true" />
+              <div>
+                <span>CHAPTER 04</span>
+                <strong>
+                  {dinnerChoice
+                    ? dinnerLabels[dinnerChoice]
+                    : "Choose dinner above"}
+                </strong>
+                <p>
+                  {dinnerChoice
+                    ? "Birthday dinner · final reservation follows"
+                    : "One last decision and this cut is complete."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="summary-prelude selected-cut">
+            <span>YOUR SELECTED CUT</span>
+            <div>
+              <strong>
+                {selectedPortrait.shortName} · {selectedWorkshop.shortName} ·{" "}
+                {selectedEvent.shortName}
+              </strong>
+              <p>
+                {dinnerChoice
+                  ? `Finishing at ${dinnerLabels[dinnerChoice]}`
+                  : "Dinner still needs your vote"}
+              </p>
+            </div>
+          </div>
 
           <label className="note-field">
             <span>Anything else?</span>
@@ -793,11 +1169,11 @@ export default function Home() {
 
           <div className="summary-actions">
             <button className="copy-button" type="button" onClick={copyReview}>
-              {copied ? "Copied — send it to Erfan" : "Copy my final cut"}
+              {copied ? "Copied — send it to Erfan" : "Copy my timetable"}
               <span aria-hidden="true">{copied ? "✓" : "↗"}</span>
             </button>
             <button className="reset-button" type="button" onClick={resetReview}>
-              Reset votes
+              Reset to proposed day
             </button>
           </div>
         </div>
